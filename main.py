@@ -29,7 +29,19 @@ async def flush(filepath, dataflushing):
 
 
 async def check_mod(prompt):
-    return False
+    mod = requests.post('https://api.sightengine.com/1.0/text/check.json',
+                        data={
+                            "text": prompt,
+                            "lang": "en",
+                            "mode": "rules",
+                            "api_user": "255972626",
+                            "api_secret": "yFfqLEJ6dfHiFvcdWHwX7JTqhR"})
+    mod = mod.json()
+    result: list = mod['profanity']['matches']
+    if result.__len__() > 0:
+        return True
+    else:
+        return False
 
 
 @bot.slash_command()
@@ -80,7 +92,7 @@ async def set_model(ctx, model: str):
 
 
 @bot.slash_command(guild_ids=[1106816467074297866])
-async def api_endpoint(ctx: disnake.Interaction, endpoint: str = disnake.SlashOption(name="type", choices={"Free": "freeapi", "Paid": "v2"})):
+async def api_endpoint(ctx: disnake.Interaction, endpoint: str = disnake.SlashOption(name="type", choices={"Free": "freeapi", "Paid": "v1"})):
     user = await find(data, "id", ctx.user.id)
     if not user:
         grr = userpreset.copy()
@@ -105,7 +117,7 @@ async def on_message(ctx: disnake.Message):
             user['chat'].append({"role": "user", "content": ctx.content})
             print("Requesting")
             try:
-                request = requests.post(f"https://api-mirror.webraft.in/{user['endpoint']}/chat/completions", headers={
+                request = requests.post(f"https://api.webraft.in/{user['endpoint']}/chat/completions", headers={
                 "Authorization": f"Bearer {user['api-key']}", "Content-type": "application/json"
             }, json={
                 "model": user['model'], "messages": user['chat'], "max_tokens": 2000
@@ -129,4 +141,4 @@ async def on_ready():
     print(f"Ready as {bot.user}")
 
 
-bot.run("bottoken")
+bot.run("")
